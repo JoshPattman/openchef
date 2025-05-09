@@ -1,3 +1,6 @@
+volumes:
+  web-persist-volume:
+
 services:
   import_service:
     build:
@@ -21,3 +24,6 @@ services:
     environment:
       - WEB_PORT=8080
       - IMPORT_PORT=8081
+      - WEB_PERSIST_PATH=/web-data
+    volumes:
+      - web-persist-volume:/web-data

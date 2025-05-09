@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
+	"path"
 
 	_ "embed"
 
@@ -14,7 +16,7 @@ import (
 var createTableSql string
 
 func ConnectToDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "recipes.db")
+	db, err := sql.Open("sqlite3", path.Join(os.Getenv("WEB_PERSIST_PATH"), "web.db"))
 	if err != nil {
 		return nil, errors.Join(fmt.Errorf("Error opening database"), err)
 	}
