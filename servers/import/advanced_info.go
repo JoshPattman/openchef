@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
 	"utils"
@@ -16,12 +17,12 @@ func advancedInfoHandler(ctx *gin.Context) {
 	var recipe utils.Recipe
 	err := ctx.BindJSON(&recipe)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
+		ctx.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 	imported, err := advancedInfoFromRecipe(recipe)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, imported)
@@ -32,12 +33,12 @@ func advancedInfoFromRecipe(recipie utils.Recipe) (utils.RecipeImportInfo, error
 	summariser := NewRecipieSummariser()
 	summary, _, err := jpf.RunOneShot(model, summariser, recipie)
 	if err != nil {
-		return utils.RecipeImportInfo{}, err
+		return utils.RecipeImportInfo{}, errors.Join(errors.New("failed to summarise"), err)
 	}
 	embedder := jpf.NewOpenAIEmbedder(os.Getenv("OPENAI_KEY"), "text-embedding-3-small")
 	vec, err := embedder.Embed(summary)
 	if err != nil {
-		return utils.RecipeImportInfo{}, err
+		return utils.RecipeImportInfo{}, errors.Join(errors.New("failed to vectorise"), err)
 	}
 	return utils.RecipeImportInfo{
 		Summary: summary,
