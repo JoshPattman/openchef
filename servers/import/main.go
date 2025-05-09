@@ -16,7 +16,8 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/healthcheck", healthCheckHandler)
-	r.GET("/import", importHandler)
+	r.POST("/basic-info", basicInfoHandler)
+	r.POST("/advanced-info", advancedInfoHandler)
 
 	err := r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {

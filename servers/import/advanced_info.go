@@ -7,14 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func importHandler(ctx *gin.Context) {
+func advancedInfoHandler(ctx *gin.Context) {
 	var recipie utils.Recipie
 	err := ctx.BindJSON(&recipie)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, err)
 		return
 	}
-	imported, err := importRecipie(recipie)
+	imported, err := advancedInfoFromRecipie(recipie)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return
@@ -22,7 +22,7 @@ func importHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, imported)
 }
 
-func importRecipie(utils.Recipie) (utils.RecipieImportInfo, error) {
+func advancedInfoFromRecipie(utils.Recipie) (utils.RecipieImportInfo, error) {
 	return utils.RecipieImportInfo{
 		Summary: "A recipie",
 		Vector:  []float64{0},
