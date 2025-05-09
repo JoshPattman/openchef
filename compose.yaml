@@ -9,6 +9,7 @@ services:
       - "8081:8081"
     environment:
       - IMPORT_PORT=8081
+      - OPENAI_KEY=${OPENAI_KEY}
   web_service:
     build:
       context: .
