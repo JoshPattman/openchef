@@ -1,0 +1,1 @@
+Summarise the users recipe in between 3-5 sentences. Include details about the main ingredients, skills required to cook, type of meal, how easy it is to cook, and mood / vibe that meal may fit. Do not simply respond with the steps.
