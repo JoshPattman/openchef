@@ -7,6 +7,6 @@ type Recipie struct {
 }
 
 type RecipieImportInfo struct {
-	Summary string `json:"summary"`
-	Vector  []int  `json:"vector"`
+	Summary string    `json:"summary"`
+	Vector  []float64 `json:"vector"`
 }

@@ -15,7 +15,8 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.Default()
-	r.GET("/healthcheck", healthCheck)
+	r.GET("/healthcheck", healthCheckHandler)
+	r.GET("/import", importHandler)
 
 	err := r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
@@ -23,6 +24,6 @@ func main() {
 	}
 }
 
-func healthCheck(ctx *gin.Context) {
+func healthCheckHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "OK")
 }
