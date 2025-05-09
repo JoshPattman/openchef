@@ -1,16 +1,15 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net/http"
+	"utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	port := flag.Int("port", 8080, "Port to run on")
-	flag.Parse()
+	port := utils.MustReadEnvInt("IMPORT_PORT")
 
 	gin.SetMode(gin.ReleaseMode)
 
@@ -19,6 +18,7 @@ func main() {
 	r.POST("/basic-info", basicInfoHandler)
 	r.POST("/advanced-info", advancedInfoHandler)
 
+	fmt.Println("Starting import server")
 	err := r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)

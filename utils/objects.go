@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
 )
 
 type ImportFromURLRequest struct {
@@ -33,4 +35,18 @@ func ToJSONReader(v interface{}) *bytes.Reader {
 		panic(fmt.Sprintf("Failed to marshal JSON: %v", err))
 	}
 	return bytes.NewReader(b)
+}
+
+func MustReadEnvInt(name string) int {
+	valStr := os.Getenv(name)
+	if valStr == "" {
+		fmt.Println("must specify env var")
+		os.Exit(1)
+	}
+	val, err := strconv.Atoi(valStr)
+	if err != nil {
+		fmt.Println("bad int")
+		os.Exit(1)
+	}
+	return val
 }

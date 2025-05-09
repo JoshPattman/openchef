@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	port := flag.Int("port", 8080, "Port to run on")
+	port := utils.MustReadEnvInt("WEB_PORT")
 	flag.Parse()
 
 	gin.SetMode(gin.ReleaseMode)
@@ -30,6 +30,7 @@ func main() {
 	r.GET("/healthcheck", healthCheckHandler)
 	r.GET("/get/*website", getWebsite)
 
+	fmt.Println("Starting web server")
 	err = r.Run(fmt.Sprintf(":%d", *port))
 	if err != nil {
 		panic(err)
