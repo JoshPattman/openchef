@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
+	"utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +30,7 @@ func main() {
 	r.GET("/healthcheck", healthCheckHandler)
 	r.GET("/get/*website", getWebsite)
 
-	err = r.Run(fmt.Sprintf(":%d", port))
+	err = r.Run(fmt.Sprintf(":%d", *port))
 	if err != nil {
 		panic(err)
 	}
@@ -39,5 +42,36 @@ func healthCheckHandler(ctx *gin.Context) {
 
 func getWebsite(ctx *gin.Context) {
 	website := ctx.Param("website")
-	ctx.JSON(http.StatusOK, gin.H{"website": website})
+
+	request := utils.ImportFromURLRequest{
+		URL: website,
+	}
+
+	importPort := flag.Lookup("import_port").Value.String()
+	url := fmt.Sprintf("http://localhost:%s/basic_info", importPort)
+
+	resp, err := http.Post(url, "application/json", utils.ToJSONReader(request))
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "Error calling basic info endpoint")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		ctx.String(http.StatusInternalServerError, "Basic info endpoint returned an error")
+		return
+	}
+
+	var recipe utils.Recipe
+	err = json.NewDecoder(resp.Body).Decode(&recipe)
+
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "Error decoding response")
+		return
+	}
+
+	err = RecipePage(recipe.Name).Render(context.Background(), ctx.Writer)
+	if err != nil {
+		panic(err)
+	}
 }

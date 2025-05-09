@@ -1,10 +1,16 @@
 package utils
 
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+)
+
 type ImportFromURLRequest struct {
 	URL string `json:"url"`
 }
 
-type Recipie struct {
+type Recipe struct {
 	Name        string       `json:"name"`
 	Ingredients []Ingredient `json:"ingredients"`
 	Steps       []string     `json:"steps"`
@@ -16,7 +22,15 @@ type Ingredient struct {
 	Metric   string  `json:"metric"`
 }
 
-type RecipieImportInfo struct {
+type RecipeImportInfo struct {
 	Summary string    `json:"summary"`
 	Vector  []float64 `json:"vector"`
+}
+
+func ToJSONReader(v interface{}) *bytes.Reader {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to marshal JSON: %v", err))
+	}
+	return bytes.NewReader(b)
 }

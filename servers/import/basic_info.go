@@ -22,8 +22,8 @@ func basicInfoHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, imported)
 }
 
-func basicInfoFromRequest(utils.ImportFromURLRequest) (utils.Recipie, error) {
-	return utils.Recipie{
+func basicInfoFromRequest(utils.ImportFromURLRequest) (utils.Recipe, error) {
+	return utils.Recipe{
 		Name: "Good soup",
 	}, nil
 }

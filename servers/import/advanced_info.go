@@ -8,13 +8,13 @@ import (
 )
 
 func advancedInfoHandler(ctx *gin.Context) {
-	var recipie utils.Recipie
-	err := ctx.BindJSON(&recipie)
+	var recipe utils.Recipe
+	err := ctx.BindJSON(&recipe)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, err)
 		return
 	}
-	imported, err := advancedInfoFromRecipie(recipie)
+	imported, err := advancedInfoFromRecipe(recipe)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return
@@ -22,8 +22,8 @@ func advancedInfoHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, imported)
 }
 
-func advancedInfoFromRecipie(utils.Recipie) (utils.RecipieImportInfo, error) {
-	return utils.RecipieImportInfo{
+func advancedInfoFromRecipe(utils.Recipe) (utils.RecipeImportInfo, error) {
+	return utils.RecipeImportInfo{
 		Summary: "A recipie",
 		Vector:  []float64{0},
 	}, nil
