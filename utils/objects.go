@@ -1,5 +1,9 @@
 package utils
 
+type ImportFromURLRequest struct {
+	URL string `json:"url"`
+}
+
 type Recipie struct {
 	Name        string       `json:"name"`
 	Ingredients []Ingredient `json:"ingredients"`
