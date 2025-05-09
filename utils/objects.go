@@ -1,5 +1,11 @@
 package utils
 
+import (
+	"fmt"
+	"os"
+	"strconv"
+)
+
 type ImportFromURLRequest struct {
 	URL string `json:"url"`
 }
@@ -19,4 +25,18 @@ type Ingredient struct {
 type RecipieImportInfo struct {
 	Summary string    `json:"summary"`
 	Vector  []float64 `json:"vector"`
+}
+
+func MustReadEnvInt(name string) int {
+	valStr := os.Getenv(name)
+	if valStr == "" {
+		fmt.Println("must specify env var")
+		os.Exit(1)
+	}
+	val, err := strconv.Atoi(valStr)
+	if err != nil {
+		fmt.Println("bad int")
+		os.Exit(1)
+	}
+	return val
 }
