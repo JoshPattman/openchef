@@ -1,5 +1,10 @@
 FROM golang:1.24.3-bookworm
 
+RUN mkdir /cgoprecomp
+COPY ./cgoprecomp /cgoprecomp
+WORKDIR /cgoprecomp
+RUN go run .
+
 RUN mkdir /src-code
 RUN mkdir /src-code/web
 RUN mkdir /src-code/utils
