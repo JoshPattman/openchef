@@ -22,6 +22,7 @@ func main() {
 	}
 
 	port := utils.MustReadEnvInt("WEB_PORT")
+	//importPort := utils.MustReadEnvInt("IMPORT_PORT")
 	flag.Parse()
 
 	gin.SetMode(gin.ReleaseMode)
@@ -31,7 +32,7 @@ func main() {
 	r.GET("/get/*website", getWebsite)
 
 	fmt.Println("Starting web server")
-	err = r.Run(fmt.Sprintf(":%d", *port))
+	err = r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)
 	}
