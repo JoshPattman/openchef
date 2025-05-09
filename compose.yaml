@@ -1,0 +1,9 @@
+services:
+  import_service:
+    build:
+      context: .
+      dockerfile: import.dockerfile
+    image: import-service:latest
+    container_name: import-service-container
+    ports:
+      - "8080:8080"

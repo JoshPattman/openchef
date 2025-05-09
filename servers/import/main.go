@@ -19,7 +19,7 @@ func main() {
 	r.POST("/basic-info", basicInfoHandler)
 	r.POST("/advanced-info", advancedInfoHandler)
 
-	err := r.Run(fmt.Sprintf(":%d", port))
+	err := r.Run(fmt.Sprintf(":%d", *port))
 	if err != nil {
 		panic(err)
 	}
