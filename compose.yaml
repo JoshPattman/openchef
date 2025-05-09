@@ -6,4 +6,12 @@ services:
     image: import-service:latest
     container_name: import-service-container
     ports:
+      - "8081:8080"
+  web_service:
+    build:
+      context: .
+      dockerfile: web.dockerfile
+    image: web-service:latest
+    container_name: web-service-container
+    ports:
       - "8080:8080"

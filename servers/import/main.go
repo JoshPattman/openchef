@@ -19,6 +19,7 @@ func main() {
 	r.POST("/basic-info", basicInfoHandler)
 	r.POST("/advanced-info", advancedInfoHandler)
 
+	fmt.Println("Starting import server")
 	err := r.Run(fmt.Sprintf(":%d", *port))
 	if err != nil {
 		panic(err)
