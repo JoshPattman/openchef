@@ -17,6 +17,7 @@ func main() {
 	r.GET("/healthcheck", healthCheckHandler)
 	r.POST("/basic-info", basicInfoHandler)
 	r.POST("/advanced-info", advancedInfoHandler)
+	r.POST("/embed-text", embedTextHandler)
 
 	fmt.Println("Starting import server")
 	err := r.Run(fmt.Sprintf(":%d", port))

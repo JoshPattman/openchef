@@ -8,6 +8,10 @@ import (
 	"strconv"
 )
 
+type EmbedStringRequest struct {
+	String string `json:"string"`
+}
+
 type ImportFromURLRequest struct {
 	URL string `json:"url"`
 }
