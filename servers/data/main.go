@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -11,13 +12,15 @@ import (
 )
 
 var logger *slog.Logger
+var db *sql.DB
 
 func main() {
 	logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
 
-	db, err := ConnectToDB()
+	var err error
+	db, err = ConnectToDB()
 	if err != nil {
 		panic(err)
 	}
@@ -35,6 +38,7 @@ func main() {
 	r.POST("/basic-info", basicInfoHandler)
 	r.POST("/advanced-info", advancedInfoHandler)
 	r.POST("/embed-text", embedTextHandler)
+	r.POST("/import-url", importURLHandler)
 
 	fmt.Println("Starting import server")
 	err = r.Run(fmt.Sprintf(":%d", port))

@@ -1,5 +1,10 @@
 volumes:
   data-persist-volume:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./mounted_data
+      o: bind
 
 services:
   data_service:
