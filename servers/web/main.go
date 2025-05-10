@@ -44,16 +44,24 @@ func healthCheckHandler(ctx *gin.Context) {
 
 func getWebsite(ctx *gin.Context) {
 	website := ctx.Param("website")
+	if len(website) > 0 && website[0] == '/' {
+		website = website[1:]
+	}
+
+	fmt.Println("Fetching website: ", website)
 
 	request := utils.ImportFromURLRequest{
 		URL: website,
 	}
 
-	importPort := flag.Lookup("import_port").Value.String()
-	url := fmt.Sprintf("http://localhost:%s/basic_info", importPort)
+	importPort := utils.MustReadEnvInt("IMPORT_PORT")
+	url := fmt.Sprintf("http://import_service:%d/basic-info", importPort)
+
+	fmt.Println("Hitting: ", url)
 
 	resp, err := http.Post(url, "application/json", utils.ToJSONReader(request))
 	if err != nil {
+		fmt.Printf("Error: %s", err)
 		ctx.String(http.StatusInternalServerError, "Error calling basic info endpoint")
 		return
 	}
