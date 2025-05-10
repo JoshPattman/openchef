@@ -30,39 +30,39 @@ func basicInfoHandler(ctx *gin.Context) {
 }
 
 func basicInfoFromRequest(urlImport utils.ImportFromURLRequest) (utils.Recipe, error) {
-	fmt.Println("fetching: ", urlImport)
+	logger.Info("Fetching URL", "url", urlImport)
 
 	// Make HTTP GET request to fetch the HTML content
 	resp, err := http.Get(urlImport.URL)
 	if err != nil {
-		return utils.Recipe{}, fmt.Errorf("failed to fetch URL: %w", err)
+		return utils.Recipe{}, fmt.Errorf("failed to fetch URL", "error", err)
 	}
 	defer resp.Body.Close()
 
 	// Check if the response status code is OK
 	if resp.StatusCode != http.StatusOK {
-		return utils.Recipe{}, fmt.Errorf("received non-OK response: %d", resp.StatusCode)
+		return utils.Recipe{}, fmt.Errorf("received non-OK response", "code", resp.StatusCode)
 	}
 
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return utils.Recipe{}, fmt.Errorf("failed to read response body: %w", err)
+		return utils.Recipe{}, fmt.Errorf("failed to read response body", "error", err)
 	}
 
-	fmt.Printf("Fetched %d bytes from %s\n", len(body), urlImport.URL)
+	logger.Info("Fetched bytes", "bytes", len(body), "url", urlImport.URL)
 
 	// Extract structured recipe data from the HTML
 	recipeSchema, err := ExtractRecipeSchema(string(body))
 	if err != nil {
-		fmt.Printf("Warning: could not extract recipe schema: %v\n", err)
+		logger.Warn("Could not extract recipe schema", "error", err)
 		// Fall back to a default recipe if we can't extract structured data
 		return utils.Recipe{
 			Name: "Recipe from " + urlImport.URL,
 		}, nil
 	}
 
-	fmt.Println("Found: ", recipeSchema)
+	logger.Debug("Found Schema", "schema", recipeSchema)
 
 	// Convert the schema to our Recipe type
 	recipe := utils.Recipe{

@@ -2,13 +2,21 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 	"utils"
 
 	"github.com/gin-gonic/gin"
 )
 
+var logger *slog.Logger
+
 func main() {
+	logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+
 	port := utils.MustReadEnvInt("IMPORT_PORT")
 
 	gin.SetMode(gin.ReleaseMode)

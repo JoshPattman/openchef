@@ -4,13 +4,21 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 	"utils"
 
 	"github.com/gin-gonic/gin"
 )
 
+var logger *slog.Logger
+
 func main() {
+	logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+
 	db, err := ConnectToDB()
 	if err != nil {
 		panic(err)
@@ -38,6 +46,7 @@ func main() {
 }
 
 func healthCheckHandler(ctx *gin.Context) {
+	logger.Info("Responding to healthcheck")
 	ctx.JSON(http.StatusOK, "OK")
 }
 
@@ -47,7 +56,7 @@ func getWebsite(ctx *gin.Context) {
 		website = website[1:]
 	}
 
-	fmt.Println("Fetching website: ", website)
+	logger.Info("Fetching website: ", website)
 
 	request := utils.ImportFromURLRequest{
 		URL: website,
