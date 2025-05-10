@@ -1,5 +1,5 @@
 volumes:
-  web-persist-volume:
+  data-persist-volume:
 
 services:
   data_service:
@@ -13,6 +13,9 @@ services:
     environment:
       - DATA_PORT=8081
       - OPENAI_KEY=${OPENAI_KEY}
+      - DATA_PERSIST_PATH=/data-persist
+    volumes:
+      - data-persist-volume:/data-persist
   web_service:
     build:
       context: .
@@ -24,6 +27,3 @@ services:
     environment:
       - WEB_PORT=8080
       - DATA_PORT=8081
-      - WEB_PERSIST_PATH=/web-data
-    volumes:
-      - web-persist-volume:/web-data
