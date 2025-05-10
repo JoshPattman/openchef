@@ -13,27 +13,27 @@ import (
 )
 
 type RecipeSchema struct {
-	Context         string   `json:"@context"`
-	Type            string   `json:"@type"`
-	Name            string   `json:"name"`
-	Description     string   `json:"description"`
-	Image           any      `json:"image"`  // Can be string or ImageObject
-	Author          any      `json:"author"` // Can be string or Person/Organization
-	DatePublished   string   `json:"datePublished"`
-	DateModified    string   `json:"dateModified"`
-	PrepTime        string   `json:"prepTime"`  // ISO 8601 duration format
-	CookTime        string   `json:"cookTime"`  // ISO 8601 duration format
-	TotalTime       string   `json:"totalTime"` // ISO 8601 duration format
-	Keywords        string   `json:"keywords"`
-	RecipeCategory  string   `json:"recipeCategory"`
-	RecipeCuisine   string   `json:"recipeCuisine"`
-	RecipeYield     string   `json:"recipeYield"` // Can be string or number
-	Ingredients     []string `json:"recipeIngredient"`
-	Instructions    any      `json:"recipeInstructions"` // Can be string[] or HowToStep[]
-	SuitableForDiet []string `json:"suitableForDiet"`
-	Nutrition       any      `json:"nutrition"`       // NutritionInformation
-	AggregateRating any      `json:"aggregateRating"` // AggregateRating
-	Video           any      `json:"video"`           // VideoObject
+	Context        string   `json:"@context"`
+	Type           string   `json:"@type"`
+	Name           string   `json:"name"`
+	Description    string   `json:"description"`
+	Image          any      `json:"image"`  // Can be string or ImageObject
+	Author         any      `json:"author"` // Can be string or Person/Organization
+	DatePublished  string   `json:"datePublished"`
+	DateModified   string   `json:"dateModified"`
+	PrepTime       string   `json:"prepTime"`  // ISO 8601 duration format
+	CookTime       string   `json:"cookTime"`  // ISO 8601 duration format
+	TotalTime      string   `json:"totalTime"` // ISO 8601 duration format
+	Keywords       string   `json:"keywords"`
+	RecipeCategory string   `json:"recipeCategory"`
+	RecipeCuisine  string   `json:"recipeCuisine"`
+	RecipeYield    string   `json:"recipeYield"` // Can be string or number
+	Ingredients    []string `json:"recipeIngredient"`
+	Instructions   any      `json:"recipeInstructions"` // Can be string[] or HowToStep[]
+	//SuitableForDiet []string `json:"suitableForDiet"`
+	Nutrition       any `json:"nutrition"`       // NutritionInformation
+	AggregateRating any `json:"aggregateRating"` // AggregateRating
+	Video           any `json:"video"`           // VideoObject
 }
 
 func basicInfoHandler(ctx *gin.Context) {
@@ -99,8 +99,19 @@ func basicInfoFromRequest(urlImport utils.ImportFromURLRequest) (utils.Recipe, e
 	logger.Debug("Parsed schema", "parsed", recipeSchema)
 
 	// Convert the schema to our Recipe type
+	// Cursed but works for now for llm
+	steps, err := json.Marshal(recipeSchema.Instructions)
+	if err != nil {
+		return utils.Recipe{}, err
+	}
+	ingreds, err := json.Marshal(recipeSchema.Ingredients)
+	if err != nil {
+		return utils.Recipe{}, err
+	}
 	recipe := utils.Recipe{
-		Name: recipeSchemaString,
+		Name:        recipeSchema.Name,
+		Steps:       []string{string(steps)},
+		Ingredients: []utils.Ingredient{{Name: string(ingreds)}},
 	}
 
 	return recipe, nil

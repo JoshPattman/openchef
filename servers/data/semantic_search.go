@@ -17,7 +17,12 @@ func semanticSearchHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-
+	recs, err := semanticSearch(req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, recs)
 }
 
 func semanticSearch(req utils.SemanticSearchRequest) ([]utils.Recipe, error) {
@@ -34,7 +39,7 @@ func semanticSearch(req utils.SemanticSearchRequest) ([]utils.Recipe, error) {
 	sort.Slice(recs, func(i, j int) bool {
 		c1, _ := jpf.CosineSimilarity(query, recs[i].Emb)
 		c2, _ := jpf.CosineSimilarity(query, recs[j].Emb)
-		return c1 < c2
+		return c1 > c2
 	})
 
 	result := make([]utils.Recipe, 0)
