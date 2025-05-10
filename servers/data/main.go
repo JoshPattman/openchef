@@ -39,6 +39,7 @@ func main() {
 	r.POST("/advanced-info", advancedInfoHandler)
 	r.POST("/embed-text", embedTextHandler)
 	r.POST("/import-url", importURLHandler)
+	r.POST("/semantic-search", semanticSearchHandler)
 
 	fmt.Println("Starting import server")
 	err = r.Run(fmt.Sprintf(":%d", port))

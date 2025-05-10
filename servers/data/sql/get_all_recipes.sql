@@ -1,0 +1,1 @@
+SELECT name,ingredients,steps,summary_embedding FROM recipes;

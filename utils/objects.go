@@ -33,6 +33,11 @@ type RecipeImportInfo struct {
 	Vector  []float64 `json:"vector"`
 }
 
+type SemanticSearchRequest struct {
+	Search string `json:"search"`
+	MaxN   int    `json:"max_n"`
+}
+
 func ToJSONReader(v interface{}) *bytes.Reader {
 	b, err := json.Marshal(v)
 	if err != nil {
