@@ -19,15 +19,6 @@ func main() {
 		Level: slog.LevelDebug,
 	}))
 
-	db, err := ConnectToDB()
-	if err != nil {
-		panic(err)
-	}
-	err = InitDB(db)
-	if err != nil {
-		panic(err)
-	}
-
 	port := utils.MustReadEnvInt("WEB_PORT")
 	//importPort := utils.MustReadEnvInt("IMPORT_PORT")
 	flag.Parse()
@@ -39,7 +30,7 @@ func main() {
 	r.GET("/get/*website", getWebsite)
 
 	fmt.Println("Starting web server")
-	err = r.Run(fmt.Sprintf(":%d", port))
+	err := r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)
 	}

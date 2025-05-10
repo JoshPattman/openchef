@@ -17,6 +17,15 @@ func main() {
 		Level: slog.LevelDebug,
 	}))
 
+	db, err := ConnectToDB()
+	if err != nil {
+		panic(err)
+	}
+	err = InitDB(db)
+	if err != nil {
+		panic(err)
+	}
+
 	port := utils.MustReadEnvInt("DATA_PORT")
 
 	gin.SetMode(gin.ReleaseMode)
@@ -28,7 +37,7 @@ func main() {
 	r.POST("/embed-text", embedTextHandler)
 
 	fmt.Println("Starting import server")
-	err := r.Run(fmt.Sprintf(":%d", port))
+	err = r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)
 	}
