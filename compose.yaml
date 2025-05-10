@@ -2,16 +2,16 @@ volumes:
   web-persist-volume:
 
 services:
-  import_service:
+  data_service:
     build:
       context: .
-      dockerfile: import.dockerfile
-    image: import-service:latest
-    container_name: import-service-container
+      dockerfile: data.dockerfile
+    image: data-service:latest
+    container_name: data-service-container
     ports:
       - "8081:8081"
     environment:
-      - IMPORT_PORT=8081
+      - DATA_PORT=8081
       - OPENAI_KEY=${OPENAI_KEY}
   web_service:
     build:
@@ -23,7 +23,7 @@ services:
       - "8080:8080"
     environment:
       - WEB_PORT=8080
-      - IMPORT_PORT=8081
+      - DATA_PORT=8081
       - WEB_PERSIST_PATH=/web-data
     volumes:
       - web-persist-volume:/web-data

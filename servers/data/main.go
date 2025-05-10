@@ -17,7 +17,7 @@ func main() {
 		Level: slog.LevelDebug,
 	}))
 
-	port := utils.MustReadEnvInt("IMPORT_PORT")
+	port := utils.MustReadEnvInt("DATA_PORT")
 
 	gin.SetMode(gin.ReleaseMode)
 

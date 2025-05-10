@@ -1,7 +1,7 @@
 go 1.24.3
 
 use (
-	./servers/import
+	./servers/data
 	./servers/web
 	./utils
 )
