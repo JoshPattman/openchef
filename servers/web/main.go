@@ -47,14 +47,14 @@ func getWebsite(ctx *gin.Context) {
 		website = website[1:]
 	}
 
-	logger.Info("Fetching website: ", website)
+	logger.Info("Fetching website: ", "website", website)
 
 	request := utils.ImportFromURLRequest{
 		URL: website,
 	}
 
 	importPort := utils.MustReadEnvInt("DATA_PORT")
-	url := fmt.Sprintf("http://import_service:%d/basic-info", importPort)
+	url := fmt.Sprintf("http://data_service:%d/basic-info", importPort)
 	recipe := utils.Recipe{}
 	err := PostAndReciveJson(url, request, &recipe)
 	if err != nil {
