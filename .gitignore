@@ -1,3 +1,5 @@
 *.db
 
 temp_files/
+
+mounted_data/
