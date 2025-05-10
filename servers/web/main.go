@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -56,27 +55,10 @@ func getWebsite(ctx *gin.Context) {
 
 	importPort := utils.MustReadEnvInt("IMPORT_PORT")
 	url := fmt.Sprintf("http://import_service:%d/basic-info", importPort)
-
-	fmt.Println("Hitting: ", url)
-
-	resp, err := http.Post(url, "application/json", utils.ToJSONReader(request))
+	recipe := utils.Recipe{}
+	err := PostAndReciveJson(url, request, &recipe)
 	if err != nil {
-		fmt.Printf("Error: %s", err)
-		ctx.String(http.StatusInternalServerError, "Error calling basic info endpoint")
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		ctx.String(http.StatusInternalServerError, "Basic info endpoint returned an error")
-		return
-	}
-
-	var recipe utils.Recipe
-	err = json.NewDecoder(resp.Body).Decode(&recipe)
-
-	if err != nil {
-		ctx.String(http.StatusInternalServerError, "Error decoding response")
+		ctx.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
