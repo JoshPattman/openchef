@@ -38,6 +38,12 @@ type SemanticSearchRequest struct {
 	MaxN   int    `json:"max_n"`
 }
 
+type SemanticSearchResult struct {
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	Summary string `json:"summary"`
+}
+
 func ToJSONReader(v interface{}) *bytes.Reader {
 	b, err := json.Marshal(v)
 	if err != nil {

@@ -62,3 +62,44 @@ func AddRecipeIngredient(db DB, recipeID int, ingredientID int, unitID int, amou
 	}
 	return nil
 }
+
+type IDVectorPair struct {
+	ID     int
+	Vector []float64
+}
+
+// Gets every id that has a vector
+func GetAllIDVectorPairs(db DB) ([]IDVectorPair, error) {
+	q := `SELECT recipe_id, summary_embedding FROM ai_recipes;`
+	pairs := make([]IDVectorPair, 0)
+	rows, err := db.Query(q)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var id int
+		var vecBlob []byte
+		err := rows.Scan(&id, &vecBlob)
+		if err != nil {
+			return nil, err
+		}
+		var vec []float64
+		err = json.Unmarshal(vecBlob, &vec)
+		if err != nil {
+			return nil, err
+		}
+		pairs = append(pairs, IDVectorPair{ID: id, Vector: vec})
+	}
+	return pairs, nil
+}
+
+func GetRecipeNameAndSummary(db DB, id int) (string, string, error) {
+	q := `SELECT recipes.name, ai_recipes.summary FROM recipes JOIN ai_recipes ON recipes.id=ai_recipes.recipe_id WHERE recipes.id=?;`
+	row := db.QueryRow(q, id)
+	var name, summary string
+	err := row.Scan(&name, &summary)
+	if err != nil {
+		return "", "", err
+	}
+	return name, summary, nil
+}

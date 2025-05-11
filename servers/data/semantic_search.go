@@ -1,6 +1,7 @@
 package main
 
 import (
+	"datadb"
 	"net/http"
 	"os"
 	"sort"
@@ -25,10 +26,11 @@ func semanticSearchHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, recs)
 }
 
-func semanticSearch(req utils.SemanticSearchRequest) ([]utils.Recipe, error) {
-	recs, err := GetAllRecipes()
+func semanticSearch(req utils.SemanticSearchRequest) ([]utils.SemanticSearchResult, error) {
+	// TODO this all should probably use a single tx
+	recs, err := datadb.GetAllIDVectorPairs(db)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	embedder := jpf.NewOpenAIEmbedder(os.Getenv("OPENAI_KEY"), "text-embedding-3-small")
 	query, err := embedder.Embed(req.Search)
@@ -37,17 +39,31 @@ func semanticSearch(req utils.SemanticSearchRequest) ([]utils.Recipe, error) {
 	}
 	// TODO very inefficient
 	sort.Slice(recs, func(i, j int) bool {
-		c1, _ := jpf.CosineSimilarity(query, recs[i].Emb)
-		c2, _ := jpf.CosineSimilarity(query, recs[j].Emb)
+		c1, _ := jpf.CosineSimilarity(query, recs[i].Vector)
+		c2, _ := jpf.CosineSimilarity(query, recs[j].Vector)
 		return c1 > c2
 	})
 
-	result := make([]utils.Recipe, 0)
+	ids := make([]int, 0)
 	for i := range recs {
 		if i >= req.MaxN {
 			break
 		}
-		result = append(result, recs[i].Rec)
+		ids = append(ids, recs[i].ID)
 	}
-	return result, nil
+
+	results := make([]utils.SemanticSearchResult, 0)
+	for _, id := range ids {
+		name, summary, err := datadb.GetRecipeNameAndSummary(db, id)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, utils.SemanticSearchResult{
+			ID:      id,
+			Name:    name,
+			Summary: summary,
+		})
+	}
+
+	return results, nil
 }
