@@ -54,7 +54,7 @@ func getWebsite(ctx *gin.Context) {
 	}
 
 	importPort := utils.MustReadEnvInt("DATA_PORT")
-	url := fmt.Sprintf("http://data_service:%d/basic-info", importPort)
+	url := fmt.Sprintf("http://data_service:%d/import-url", importPort)
 	recipe := utils.Recipe{}
 	err := PostAndReciveJson(url, request, &recipe)
 	if err != nil {

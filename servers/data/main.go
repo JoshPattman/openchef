@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"datadb"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -24,7 +25,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = InitDB(db)
+	err = datadb.InitDB(db)
 	if err != nil {
 		panic(err)
 	}
@@ -35,8 +36,6 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/healthcheck", healthCheckHandler)
-	r.POST("/basic-info", basicInfoHandler)
-	r.POST("/advanced-info", advancedInfoHandler)
 	r.POST("/embed-text", embedTextHandler)
 	r.POST("/import-url", importURLHandler)
 	r.POST("/semantic-search", semanticSearchHandler)
