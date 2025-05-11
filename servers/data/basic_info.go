@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"utils"
+
+	"github.com/JoshPattman/jpf"
 )
 
 type RecipeSchema struct {
@@ -69,32 +72,41 @@ func basicInfoFromRequest(urlImport utils.ImportFromURLRequest) (utils.Recipe, e
 
 	logger.Debug("Found Schema", "schema", recipeSchemaString)
 
-	// Convert the recipe schema string into a recipe schema
-	var recipeSchema RecipeSchema
-	err = json.Unmarshal([]byte(recipeSchemaString), &recipeSchema)
-	if err != nil {
-		logger.Warn("Failed to parse recipe schema", "error", err)
-		return utils.Recipe{
-			Name: "Recipe from " + urlImport.URL,
-		}, nil
-	}
+	// // Convert the recipe schema string into a recipe schema
+	// var recipeSchema RecipeSchema
+	// err = json.Unmarshal([]byte(recipeSchemaString), &recipeSchema)
+	// if err != nil {
+	// 	logger.Warn("Failed to parse recipe schema", "error", err)
+	// 	return utils.Recipe{
+	// 		Name: "Recipe from " + urlImport.URL,
+	// 	}, nil
+	// }
 
-	logger.Debug("Parsed schema", "parsed", recipeSchema)
+	// logger.Debug("Parsed schema", "parsed", recipeSchema)
 
-	// Convert the schema to our Recipe type
-	// Cursed but works for now for llm
-	steps, err := json.Marshal(recipeSchema.Instructions)
+	// // Convert the schema to our Recipe type
+	// // Cursed but works for now for llm
+	// steps, err := json.Marshal(recipeSchema.Instructions)
+	// if err != nil {
+	// 	return utils.Recipe{}, err
+	// }
+	// ingreds, err := json.Marshal(recipeSchema.Ingredients)
+	// if err != nil {
+	// 	return utils.Recipe{}, err
+	// }
+	// recipe := utils.Recipe{
+	// 	Name:        recipeSchema.Name,
+	// 	Steps:       []string{string(steps)},
+	// 	Ingredients: []utils.Ingredient{{Name: string(ingreds)}},
+	// }
+	recipe, _, err := jpf.RunWithRetries(
+		jpf.NewStandardOpenAIModel(os.Getenv("OPENAI_KEY"), "gpt-4o-mini", 0, 0, 0.0),
+		NewRecipeNormaliser(),
+		5,
+		recipeSchemaString,
+	)
 	if err != nil {
 		return utils.Recipe{}, err
-	}
-	ingreds, err := json.Marshal(recipeSchema.Ingredients)
-	if err != nil {
-		return utils.Recipe{}, err
-	}
-	recipe := utils.Recipe{
-		Name:        recipeSchema.Name,
-		Steps:       []string{string(steps)},
-		Ingredients: []utils.Ingredient{{Name: string(ingreds)}},
 	}
 
 	logger.Debug("Found basic recipe", "recipe", recipe)
@@ -188,4 +200,96 @@ func findRecipeObjects(data any) []map[string]any {
 	}
 
 	return recipes
+}
+
+var rschemaPrompt = `
+- Convert the provided recipe into a JSON object that conforms to this schema:
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the recipe."
+    },
+    "ingredients": {
+      "type": "array",
+      "description": "A list of ingredients used in the recipe.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the ingredient."
+          },
+          "quantity": {
+            "type": "number",
+            "description": "The quantity of the ingredient."
+          },
+          "metric": {
+            "type": "string",
+            "description": "The unit of measurement for the ingredient."
+          }
+        },
+        "required": ["name", "quantity", "metric"]
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "The steps to prepare the recipe.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "yield": {
+      "type": "integer",
+      "description": "The number of servings the recipe produces."
+    }
+  },
+  "required": ["name", "ingredients", "steps", "yield"]
+}
+- The provided schema may provide a lot of information, you only need to include enough information to fill out the schema.
+- Try not to re-word any sentences.
+- Don't include any extra text other than the json object.
+`
+
+// Creates a function that attemps to convert a string into a recipe schema
+func NewRecipeNormaliser() jpf.RetryFunction[string, utils.Recipe] {
+	return &recipeNormaliser{}
+}
+
+type recipeNormaliser struct{}
+
+// BuildInputMessages implements jpf.RetryFunction.
+func (r *recipeNormaliser) BuildInputMessages(s string) ([]jpf.Message, error) {
+	return []jpf.Message{
+		{
+			Role:    jpf.SystemRole,
+			Content: rschemaPrompt,
+		},
+		{
+			Role:    jpf.UserRole,
+			Content: s,
+		},
+	}, nil
+}
+
+// FormatFeedback implements jpf.RetryFunction.
+func (r *recipeNormaliser) FormatFeedback(err *jpf.ParseError) string {
+	logger.Warn("Recipe Normaliser responded with invalid format", "error", err.Err, "format", err.Response)
+	return fmt.Sprintf("An error occured with your last response: %v", err.Err)
+}
+
+// ParseResponseText implements jpf.RetryFunction.
+func (r *recipeNormaliser) ParseResponseText(resp string) (utils.Recipe, error) {
+	var rec utils.Recipe
+	err := json.Unmarshal([]byte(resp), &rec)
+	if err != nil {
+		return utils.Recipe{}, err
+	}
+	if rec.Steps == nil {
+		return utils.Recipe{}, fmt.Errorf("the steps object was nil, was the response in the wrong format?")
+	}
+	logger.Debug("Recipe normaliser response", "response", resp)
+	return rec, nil
 }
