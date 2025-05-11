@@ -16,11 +16,13 @@ WORKDIR /src-code
 
 RUN go work init
 RUN go work use web
+RUN go work use web/templates
 RUN go work use utils
 WORKDIR /src-code/web
 RUN go mod tidy
 RUN go build -o /web-service-binary .
 
 WORKDIR /
+COPY ./servers/web/static /static
 
 CMD ["/web-service-binary"]

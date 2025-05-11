@@ -1,0 +1,9 @@
+package templates
+
+templ RecipePage(recipeName string) {
+    @BaseTemplate("Recipe", RecipeContents(recipeName))
+}
+
+templ RecipeContents(recipeName string) {
+    <p class="text-primary">Recipe: {recipeName}</p>
+}
