@@ -2,7 +2,7 @@
 TAILWIND_INPUT=./servers/web/styles/tailwind.css
 TAILWIND_OUTPUT=./servers/web/static/main.css
 
-run-local:
+run:
 	docker-compose up --build
 
 templ:

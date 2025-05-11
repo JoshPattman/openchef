@@ -17,12 +17,14 @@ func importURLHandler(ctx *gin.Context) {
 	}
 	imported, err := basicInfoFromRequest(importRequest)
 	if err != nil {
+		logger.Error("Failed to get basic info", "error", err)
 		ctx.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	id, err := AddRecipeToDB(imported, importRequest.URL)
 	if err != nil {
+		logger.Error("Failed to add recipe to database", "error", err)
 		ctx.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -48,9 +50,9 @@ func AddRecipeToDB(rec utils.Recipe, url string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	succsess := false
+	success := false
 	defer func() {
-		if !succsess {
+		if !success {
 			tx.Rollback()
 		}
 	}()
@@ -87,10 +89,10 @@ func AddRecipeToDB(rec utils.Recipe, url string) (int, error) {
 		}
 	}
 
-	succsess = true
+	success = true
 	err = tx.Commit()
 	if err != nil {
-		succsess = false
+		success = false
 		return -1, err
 	}
 	return recipeID, nil
@@ -101,9 +103,9 @@ func AddAIRecipeToDB(recID int, aiRec utils.RecipeImportInfo) error {
 	if err != nil {
 		return err
 	}
-	succsess := false
+	success := false
 	defer func() {
-		if !succsess {
+		if !success {
 			tx.Rollback()
 		}
 	}()
@@ -112,14 +114,14 @@ func AddAIRecipeToDB(recID int, aiRec utils.RecipeImportInfo) error {
 		return err
 	}
 	// TODO maybe want to make state go to import failed, but not today
-	err = datadb.UpdateRecipeState(tx, recID, "import_sucsess")
+	err = datadb.UpdateRecipeState(tx, recID, "import_success")
 	if err != nil {
 		return err
 	}
-	succsess = true
+	success = true
 	err = tx.Commit()
 	if err != nil {
-		succsess = false
+		success = false
 		return err
 	}
 	return nil

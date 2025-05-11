@@ -1,5 +1,7 @@
 *.db
 
+servers/web/static/main.css
+
 temp_files/
 
 mounted_data/

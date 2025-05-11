@@ -20,6 +20,7 @@ type Recipe struct {
 	Name        string       `json:"name"`
 	Ingredients []Ingredient `json:"ingredients"`
 	Steps       []string     `json:"steps"`
+	Yield       int          `json:"yield"`
 }
 
 type Ingredient struct {

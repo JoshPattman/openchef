@@ -8,8 +8,6 @@ import (
 	"regexp"
 	"strings"
 	"utils"
-
-	"github.com/gin-gonic/gin"
 )
 
 type RecipeSchema struct {
@@ -34,21 +32,6 @@ type RecipeSchema struct {
 	Nutrition       any `json:"nutrition"`       // NutritionInformation
 	AggregateRating any `json:"aggregateRating"` // AggregateRating
 	Video           any `json:"video"`           // VideoObject
-}
-
-func basicInfoHandler(ctx *gin.Context) {
-	var importRequest utils.ImportFromURLRequest
-	err := ctx.BindJSON(&importRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
-		return
-	}
-	imported, err := basicInfoFromRequest(importRequest)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
-		return
-	}
-	ctx.JSON(http.StatusOK, imported)
 }
 
 func basicInfoFromRequest(urlImport utils.ImportFromURLRequest) (utils.Recipe, error) {
@@ -113,6 +96,8 @@ func basicInfoFromRequest(urlImport utils.ImportFromURLRequest) (utils.Recipe, e
 		Steps:       []string{string(steps)},
 		Ingredients: []utils.Ingredient{{Name: string(ingreds)}},
 	}
+
+	logger.Debug("Found basic recipe", "recipe", recipe)
 
 	return recipe, nil
 }

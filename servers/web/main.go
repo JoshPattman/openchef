@@ -69,7 +69,7 @@ func getWebsite(ctx *gin.Context) {
 		return
 	}
 
-	err = templates.RecipePage(recipe.Name).Render(context.Background(), ctx.Writer)
+	err = templates.RecipePage(recipe).Render(context.Background(), ctx.Writer)
 	if err != nil {
 		panic(err)
 	}
