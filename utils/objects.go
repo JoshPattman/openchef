@@ -49,12 +49,12 @@ func ToJSONReader(v interface{}) *bytes.Reader {
 func MustReadEnvInt(name string) int {
 	valStr := os.Getenv(name)
 	if valStr == "" {
-		fmt.Println("must specify env var")
+		fmt.Println("must specify env var: ", name)
 		os.Exit(1)
 	}
 	val, err := strconv.Atoi(valStr)
 	if err != nil {
-		fmt.Println("bad int")
+		fmt.Println("bad int: ", valStr)
 		os.Exit(1)
 	}
 	return val

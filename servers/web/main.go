@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"templates"
 	"utils"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,10 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.Default()
+
+	// Set up static file server for CSS, JS, images, etc.
+	r.Static("/static", "./static")
+
 	r.GET("/healthcheck", healthCheckHandler)
 	r.GET("/get/*website", getWebsite)
 
@@ -34,6 +39,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("Web server started")
+
 }
 
 func healthCheckHandler(ctx *gin.Context) {
@@ -62,7 +69,7 @@ func getWebsite(ctx *gin.Context) {
 		return
 	}
 
-	err = RecipePage(recipe.Name).Render(context.Background(), ctx.Writer)
+	err = templates.RecipePage(recipe.Name).Render(context.Background(), ctx.Writer)
 	if err != nil {
 		panic(err)
 	}

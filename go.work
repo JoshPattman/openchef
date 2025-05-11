@@ -4,5 +4,6 @@ use (
 	./servers/data
 	./servers/data/datadb
 	./servers/web
+	./servers/web/templates
 	./utils
 )
