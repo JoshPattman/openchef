@@ -2,9 +2,11 @@ package main
 
 import (
 	"datadb"
+	"fmt"
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 	"utils"
 
 	"github.com/JoshPattman/jpf"
@@ -26,16 +28,16 @@ func semanticSearchHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, recs)
 }
 
-func semanticSearch(req utils.SemanticSearchRequest) ([]utils.SemanticSearchResult, error) {
+func semanticSearch(req utils.SemanticSearchRequest) (utils.SemanticSearchResponse, error) {
 	// TODO this all should probably use a single tx
 	recs, err := datadb.GetAllIDVectorPairs(db)
 	if err != nil {
-		return nil, err
+		return utils.SemanticSearchResponse{}, err
 	}
 	embedder := jpf.NewOpenAIEmbedder(os.Getenv("OPENAI_KEY"), "text-embedding-3-small")
 	query, err := embedder.Embed(req.Search)
 	if err != nil {
-		return nil, err
+		return utils.SemanticSearchResponse{}, err
 	}
 	// TODO very inefficient
 	sort.Slice(recs, func(i, j int) bool {
@@ -56,7 +58,7 @@ func semanticSearch(req utils.SemanticSearchRequest) ([]utils.SemanticSearchResu
 	for _, id := range ids {
 		name, summary, err := datadb.GetRecipeNameAndSummary(db, id)
 		if err != nil {
-			return nil, err
+			return utils.SemanticSearchResponse{}, err
 		}
 		results = append(results, utils.SemanticSearchResult{
 			ID:      id,
@@ -65,5 +67,63 @@ func semanticSearch(req utils.SemanticSearchRequest) ([]utils.SemanticSearchResu
 		})
 	}
 
-	return results, nil
+	sum := NewResultsSummariser()
+	model := jpf.NewStandardOpenAIModel(os.Getenv("OPENAI_KEY"), "gpt-4o-mini", 0, 0, 0.5)
+	summary, _, err := jpf.RunOneShot(model, sum, ResultSummariserInput{
+		Query:   req.Search,
+		Results: results,
+	})
+	if err != nil {
+		return utils.SemanticSearchResponse{}, err
+	}
+
+	return utils.SemanticSearchResponse{
+		Results: results,
+		Summary: summary,
+	}, nil
+}
+
+type ResultSummariserInput struct {
+	Query   string
+	Results []utils.SemanticSearchResult
+}
+
+func NewResultsSummariser() jpf.Function[ResultSummariserInput, string] {
+	return &resultsSummariser{}
+}
+
+type resultsSummariser struct{}
+
+// BuildInputMessages implements jpf.Function.
+func (r *resultsSummariser) BuildInputMessages(input ResultSummariserInput) ([]jpf.Message, error) {
+	sysPrompt := `
+	- You are recipe summariser, an expert foodie.
+	- Your role is to summarise some recipes for the user, given a query that they asked.
+	- You should cite the IDs of the dishes you mention in your answer, using sqaure backets, e.g. "[5]" or "[1][3]".
+	`
+	userPrompt := fmt.Sprintf("I am looking for: %s", input.Query)
+	resultStrs := []string{}
+	for _, res := range input.Results {
+		resultStrs = append(resultStrs, fmt.Sprintf("- **%s**: %s", res.Name, res.Summary))
+	}
+	resultPrompt := fmt.Sprintf("The following are relevant recipies to the users query:\n%s", strings.Join(resultStrs, "\n"))
+	return []jpf.Message{
+		{
+			Role:    jpf.SystemRole,
+			Content: sysPrompt,
+		},
+		{
+			Role:    jpf.UserRole,
+			Content: userPrompt,
+		},
+		{
+			Role:    jpf.SystemRole,
+			Content: resultPrompt,
+		},
+	}, nil
+}
+
+// ParseResponseText implements jpf.Function.
+func (r *resultsSummariser) ParseResponseText(s string) (string, error) {
+	return s, nil
 }

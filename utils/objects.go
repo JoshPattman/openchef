@@ -45,6 +45,11 @@ type SemanticSearchResult struct {
 	Summary string `json:"summary"`
 }
 
+type SemanticSearchResponse struct {
+	Results []SemanticSearchResult `json:"results"`
+	Summary string                 `json:"summary"`
+}
+
 func ToJSONReader(v interface{}) *bytes.Reader {
 	b, err := json.Marshal(v)
 	if err != nil {
