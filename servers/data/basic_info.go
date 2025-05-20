@@ -103,6 +103,7 @@ func basicInfoFromRequest(urlImport utils.ImportFromURLRequest) (utils.Recipe, e
 		jpf.NewStandardOpenAIModel(os.Getenv("OPENAI_KEY"), "gpt-4o-mini", 0, 0, 0.0),
 		NewRecipeNormaliser(),
 		5,
+		jpf.UserRole,
 		recipeSchemaString,
 	)
 	if err != nil {

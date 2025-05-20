@@ -3,7 +3,7 @@ module import
 go 1.24.3
 
 require (
-	github.com/JoshPattman/jpf v0.0.0-20250508203619-1800192d5857
+	github.com/JoshPattman/jpf v0.3.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/mattn/go-sqlite3 v1.14.28
 )
