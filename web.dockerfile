@@ -1,28 +1,35 @@
-FROM golang:1.24.3-bookworm
-
-RUN mkdir /cgoprecomp
-COPY ./cgoprecomp /cgoprecomp
-WORKDIR /cgoprecomp
-RUN go run .
-
-RUN mkdir /src-code
-RUN mkdir /src-code/web
-RUN mkdir /src-code/utils
-
-COPY ./servers/web /src-code/web
-COPY ./utils /src-code/utils
-
-WORKDIR /src-code
-
-RUN go work init
-RUN go work use web
-RUN go work use web/templates
-RUN go work use utils
-WORKDIR /src-code/web
-RUN go mod tidy
-RUN go build -o /web-service-binary .
+# Build the rust project, it uses a Debain OS
+FROM rust:1.87.0 AS builder
 
 WORKDIR /
-COPY ./servers/web/static /static
 
-CMD ["/web-service-binary"]
+RUN mkdir -p ./servers/web/src
+
+# Cache dependencies work around, copying over all files triggers a complete rebuuild as cargo.toml is new.
+# Copying individually allows us only rebuild dependencies if they have changed
+COPY Cargo.toml .
+COPY Cargo.lock .
+COPY servers/web/Cargo.toml /servers/web
+COPY servers/web/Cargo.lock /servers/web
+
+# Create a dummy file
+RUN echo 'fn main() { println!("hello"); }' > ./servers/web/src/main.rs
+RUN cargo build --release -p openchef-web
+RUN rm -rf ./servers/web/src
+
+COPY servers/web/src/ /servers/web/src/
+COPY servers/web/templates/ /servers/web/templates/
+
+# Force update modification times to make cargo rebuild them
+RUN touch -a -m ./servers/web/src/main.rs
+
+RUN cargo build --release -p openchef-web
+
+# Deploy the application
+FROM ubuntu:25.10
+
+WORKDIR /
+COPY /servers/web/static /static
+COPY --from=builder /target/release/openchef-web .
+
+ENTRYPOINT [ "./openchef-web" ]

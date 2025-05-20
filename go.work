@@ -3,7 +3,5 @@ go 1.24.3
 use (
 	./servers/data
 	./servers/data/datadb
-	./servers/web
-	./servers/web/templates
 	./utils
 )
