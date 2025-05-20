@@ -3,30 +3,13 @@ package main
 import (
 	"datadb"
 	"fmt"
-	"net/http"
 	"os"
 	"sort"
 	"strings"
 	"utils"
 
 	"github.com/JoshPattman/jpf"
-	"github.com/gin-gonic/gin"
 )
-
-func semanticSearchHandler(ctx *gin.Context) {
-	req := utils.SemanticSearchRequest{}
-	err := ctx.BindJSON(&req)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
-	recs, err := semanticSearch(req)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err.Error())
-		return
-	}
-	ctx.JSON(http.StatusOK, recs)
-}
 
 func semanticSearch(req utils.SemanticSearchRequest) (utils.SemanticSearchResponse, error) {
 	// TODO this all should probably use a single tx
@@ -67,15 +50,16 @@ func semanticSearch(req utils.SemanticSearchRequest) (utils.SemanticSearchRespon
 		})
 	}
 
-	sum := NewResultsSummariser()
-	model := jpf.NewStandardOpenAIModel(os.Getenv("OPENAI_KEY"), "gpt-4o-mini", 0, 0, 0.5)
-	summary, _, err := jpf.RunOneShot(model, sum, ResultSummariserInput{
-		Query:   req.Search,
-		Results: results,
-	})
-	if err != nil {
-		return utils.SemanticSearchResponse{}, err
-	}
+	// sum := NewResultsSummariser()
+	// model := jpf.NewStandardOpenAIModel(os.Getenv("OPENAI_KEY"), "gpt-4o-mini", 0, 0, 0.5)
+	// summary, _, err := jpf.RunOneShot(model, sum, ResultSummariserInput{
+	// 	Query:   req.Search,
+	// 	Results: results,
+	// })
+	// if err != nil {
+	// 	return utils.SemanticSearchResponse{}, err
+	// }
+	summary := ""
 
 	return utils.SemanticSearchResponse{
 		Results: results,
