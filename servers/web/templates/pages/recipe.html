@@ -4,12 +4,12 @@
 
 {% block content %}
 
-<h1 class="text-primary">Recipe: {{name}}</h1>
+<h1 class="text-primary">Recipe: {{recipe.name}}</h1>
 
 <ul class="list bg-base-100 rounded-box shadow-md">
     <li class="tracking-wide p-6">Ingredients:</li>
 
-    {% for ingredient in ingredients %}
+    {% for ingredient in recipe.ingredients %}
         <li class="list-row">
             <p class="list-col-grow text-primary">{{ingredient.name}}</p>
             <p class="text-secondary">{{ingredient.quantity}}</p>
@@ -21,13 +21,13 @@
 <ul class="list bg-base-100 rounded-box shadow-md">
     <li class="tracking-wide p-6">Steps:</li>
 
-    {% for step in steps %}
+    {% for instruction in recipe.instructions %}
         <li class="list-row">
-            <p class="list-col-grow text-primary">{{step}}</p>
+            <p class="list-col-grow text-primary">{{instruction}}</p>
         </li>
     {% endfor %}
 </ul>
 
-<p class="text-accent">Yield: {{recipe_yield}}</p>
+<p class="text-accent">Yield: {{recipe.yields}}</p>
 
 {% endblock content %}

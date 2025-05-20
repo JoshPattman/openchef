@@ -29,6 +29,8 @@ RUN cargo build --release -p openchef-web
 FROM ubuntu:25.10
 
 WORKDIR /
+RUN apt-get update && apt-get install -y ca-certificates
+
 COPY /servers/web/static /static
 COPY --from=builder /target/release/openchef-web .
 
