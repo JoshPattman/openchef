@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::{debug, error, info};
 
-use crate::AppError;
+use crate::{utils::db::{add_parser_error, get_db_connection, ParserError}, AppError};
 
 // add fields as needed
 #[derive(Serialize, Deserialize, Debug)]
@@ -69,6 +69,8 @@ pub(crate) async fn extract_json_from_url(url: &str) -> Result<Vec<WebRecipe>, A
 
     let mut recipe_jsons: Vec<Value> = vec![];
 
+    let pool = get_db_connection().await?;
+
     // Extract the JSON content from all matching script tags
     for capture in re.captures_iter(&body).filter_map(|c| c.get(1)) {
         let content = capture.as_str();
@@ -108,11 +110,18 @@ pub(crate) async fn extract_json_from_url(url: &str) -> Result<Vec<WebRecipe>, A
         
         // if we get here, we should check the schema
         error!("New schema format found: {}", content);
+        add_parser_error(&pool, ParserError::new(url.to_string(), "NEW SCHEMA FORMAT".to_string())).await?;
     }
 
     let mut web_recipes = vec![];
     for recipe_json in recipe_jsons.into_iter() {
-        let web_recipe = serde_json::from_value(recipe_json)?;
+        let web_recipe = match serde_json::from_value(recipe_json) {
+            Ok(v) => v,
+            Err(e) => {
+                add_parser_error(&pool, ParserError::new(url.to_string(), format!("JSON PARSE ERROR: {}", e.to_string()))).await?;
+                return Err(e.into());
+            }
+        };
         web_recipes.push(web_recipe);
     }
 

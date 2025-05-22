@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tracing::info;
 
-use crate::{utils::{self, objects::Recipe}, AppError};
+use crate::{get_db_connection, utils::{self, db::{add_parser_error, ParserError}, objects::Recipe}, AppError};
 
 #[derive(Template)]
 #[template(path = "pages/recipe.html")]
@@ -26,6 +26,8 @@ pub(crate) async fn recipe_handler(Path(url): Path<String>) -> Result<impl IntoR
 
     // TODO: handle more than one recipe
     if json.is_empty() {
+        let pool = get_db_connection().await?;
+        add_parser_error(&pool, ParserError::new(url, "NO JSON SCHEMA FOUND".to_string())).await?;
         return Err(AppError::MiscError(String::from("No json schema found")))
     }
     let web_recipe_json = json.remove(0);

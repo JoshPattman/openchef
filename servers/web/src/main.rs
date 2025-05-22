@@ -7,6 +7,7 @@ use thiserror::Error;
 use tower_http::services::ServeDir;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
+use utils::db::{create_tables, get_db_connection};
 
 mod routes;
 mod utils;
@@ -33,6 +34,10 @@ pub enum AppError {
     RegexError(#[from] regex::Error),
     #[error("Error [de?]serialising data {0}")]
     JsonError(#[from] serde_json::Error),
+    #[error("Cannot find var {0}")]
+    VarError(#[from] env::VarError),
+    #[error("SQL error {0}")]
+    SqlError(#[from] sqlx::Error),
     #[error("{0}")]
     MiscError(String)
 }
@@ -61,6 +66,9 @@ async fn main() -> anyhow::Result<()> {
         .with_max_level(Level::DEBUG)
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+
+    let pool = get_db_connection().await?;
+    create_tables(&pool).await?;
 
     info!("Starting the web server...");
 
