@@ -1,6 +1,7 @@
 use std::{env, str::FromStr, sync::OnceLock};
 
 use sqlx::{prelude::FromRow, sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions}, Executor, Sqlite};
+use tracing::info;
 
 use crate::AppError;
 
@@ -30,7 +31,7 @@ pub(crate) async fn create_tables(pool: &SqlitePool) -> Result<(), AppError> {
     Ok(())
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub(crate) struct ParserError {
     pub url: String,
     pub error: String,
@@ -43,6 +44,25 @@ impl ParserError {
 }
 
 pub(crate) async fn add_parser_error(pool: &SqlitePool, error: ParserError) -> Result<(), AppError> {
+    // Check if the entry already exists
+    let existing: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM parser_errors
+        WHERE url = ? AND error = ?;
+        "#
+    )
+    .bind(&error.url)
+    .bind(&error.error)
+    .fetch_one(pool)
+    .await?;
+
+    if existing > 0 {
+        info!("Parser error already in database {:?}", error);
+        return Ok(()); // Entry already exists, do nothing
+    }
+
+    // Insert the new entry
     sqlx::query(
         r#"
         INSERT INTO parser_errors (url, error)
@@ -68,6 +88,20 @@ pub(crate) async fn get_parser_errors(pool: &SqlitePool) -> Result<Vec<ParserErr
     .await?;
 
     Ok(errors)
+}
+
+pub(crate) async fn remove_url_from_parser_errors(pool: &SqlitePool, url: &str) -> Result<(), AppError> {
+    sqlx::query(
+        r#"
+        DELETE FROM parser_errors
+        WHERE url = ?;
+        "#
+    )
+    .bind(url)
+    .execute(pool)
+    .await?;
+
+    Ok(())
 }
 
 

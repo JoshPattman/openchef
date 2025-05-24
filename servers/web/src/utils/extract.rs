@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::{debug, error, info};
 
-use crate::{utils::db::{add_parser_error, get_db_connection, ParserError}, AppError};
+use crate::{utils::db::{add_parser_error, get_db_connection, remove_url_from_parser_errors, ParserError}, AppError};
+
+use super::objects::Recipe;
 
 // add fields as needed
 #[derive(Serialize, Deserialize, Debug)]
@@ -10,7 +12,7 @@ use crate::{utils::db::{add_parser_error, get_db_connection, ParserError}, AppEr
 pub(crate) struct WebRecipe {
     pub name: String,
     pub description: String,
-    pub keywords: String,
+    pub keywords: Option<String>,
     pub image: WebImage,
     pub prep_time: String,
     pub cook_time: String,
@@ -54,7 +56,7 @@ pub(crate) enum WebRecipeYield {
     Array(Vec<String>),
 }
 
-pub(crate) async fn extract_json_from_url(url: &str) -> Result<Vec<WebRecipe>, AppError> {
+pub(crate) async fn extract_json_from_url(url: &str) -> Result<Vec<Recipe>, AppError> {
     info!("Extracting json from {}", url);
 
     // Fetch the HTML content from the URL
@@ -113,7 +115,7 @@ pub(crate) async fn extract_json_from_url(url: &str) -> Result<Vec<WebRecipe>, A
         add_parser_error(&pool, ParserError::new(url.to_string(), "NEW SCHEMA FORMAT".to_string())).await?;
     }
 
-    let mut web_recipes = vec![];
+    let mut web_recipes: Vec<WebRecipe> = vec![];
     for recipe_json in recipe_jsons.into_iter() {
         let web_recipe = match serde_json::from_value(recipe_json) {
             Ok(v) => v,
@@ -125,5 +127,15 @@ pub(crate) async fn extract_json_from_url(url: &str) -> Result<Vec<WebRecipe>, A
         web_recipes.push(web_recipe);
     }
 
-    Ok(web_recipes)
+    if web_recipes.is_empty() {
+        add_parser_error(&pool, ParserError::new(url.to_string(), "NO JSON SCHEMA FOUND".to_string())).await?;
+        return Err(AppError::MiscError(String::from("No json schema found")))
+    }
+
+    
+    // Recipes are valid from here onward
+    let recipes = web_recipes.into_iter().map(|r| r.into()).collect();
+    remove_url_from_parser_errors(&pool, url).await?;
+
+    Ok(recipes)
 }

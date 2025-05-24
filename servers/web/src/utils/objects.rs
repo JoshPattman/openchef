@@ -25,7 +25,7 @@ impl From<WebRecipe> for Recipe {
         Recipe { 
             name: value.name,
             description: value.description,
-            keywords: value.keywords,
+            keywords: value.keywords.unwrap_or("".to_string()),
             image: value.image.into(),
             prep_time: value.prep_time,
             cook_time: value.cook_time,
