@@ -3,8 +3,37 @@
 {% block title %}Home{% endblock title %} 
 
 {% block content %}
-<h1 class="text-primary"> Welcome to Openchef!</h1>
 
-<p>Here you can extract and find recipes</p>
+<h1 class="text-3xl text-primary-content">Welcome to Openchef!</h1>
 
+<div class="join">
+  <div>
+    <label class="input validator join-item">
+        <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <g
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            stroke-width="2.5"
+            fill="none"
+            stroke="currentColor"
+            >
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </g>
+        </svg>
+        <input type="url" placeholder="https://your.recipe/url" required 
+               id="recipe-url"
+               name="recipe_url"
+               hx-post="/navigate" 
+               hx-include="this" 
+               hx-trigger="keyup[key=='Enter']"/>
+    </label>
+    <div class="validator-hint hidden">Enter a valid url</div>
+  </div>
+  <button class="btn btn-neutral join-item" 
+          hx-post="/navigate" 
+          hx-include="#recipe-url">
+    Get Recipe!
+  </button>
+</div>
 {% endblock content %}

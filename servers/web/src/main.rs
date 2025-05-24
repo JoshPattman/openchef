@@ -1,8 +1,7 @@
 use std::env;
 
-use askama::Template;
-use axum::{http::StatusCode, response::{Html, IntoResponse, Response}, routing::get, Router};
-use routes::recipe::recipe_handler;
+use axum::{http::StatusCode, response::{IntoResponse, Response}, routing::{get, post}, Router};
+use routes::{home::{home, navigate}, recipe::recipe_handler};
 use thiserror::Error;
 use tower_http::services::ServeDir;
 use tracing::{info, Level};
@@ -11,16 +10,6 @@ use utils::db::{create_tables, get_db_connection};
 
 mod routes;
 mod utils;
-
-#[derive(Template)]
-#[template(path = "pages/home.html")]
-struct Home {}
-
-async fn home() -> impl IntoResponse {
-    let home = Home {};
-
-    Html(home.render().expect("Why isnt the home page rendering?!"))
-}
 
 async fn ping() -> impl IntoResponse {
     "Pong"
@@ -74,6 +63,7 @@ async fn main() -> anyhow::Result<()> {
 
     let router = Router::new()
         .route("/", get(home))
+        .route("/navigate", post(navigate))
         .route("/ping", get(ping))
         .route("/recipe/{*url}", get(recipe_handler))
         .nest_service("/static", ServeDir::new("./static"));

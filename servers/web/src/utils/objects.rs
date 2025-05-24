@@ -1,12 +1,13 @@
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
+use sqlx::prelude::FromRow;
 use tracing::error;
 
 use super::extract::{WebImage, WebRecipe, WebRecipeInstructions, WebRecipeYield};
 
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, FromRow)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct Recipe {
     pub name: String,
